@@ -5,6 +5,14 @@ use std::io::Write;
 use std::path::PathBuf;
 use std::process::ExitCode;
 
+/// print to stdout, ignoring a closed pipe (e.g. `rescueforge sigs | head`)
+macro_rules! outln {
+    ($($t:tt)*) => {{
+        use std::io::Write;
+        let _ = writeln!(std::io::stdout(), $($t)*);
+    }};
+}
+
 #[derive(Parser)]
 #[command(
     name = "rescueforge",
@@ -117,30 +125,30 @@ fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
     let open = |p: &PathBuf| Image::open_at(p, base);
     match cli.cmd {
         Cmd::Sigs => {
-            println!("{:<12} {:<6} limit", "name", "ext");
+            outln!("{:<12} {:<6} limit", "name", "ext");
             for s in sig::SIGNATURES {
-                println!("{:<12} .{:<5} {} MiB", s.name, s.ext, s.max_len / (1 << 20));
+                outln!("{:<12} .{:<5} {} MiB", s.name, s.ext, s.max_len / (1 << 20));
             }
         }
         Cmd::Fsinfo { image } => {
             let img = open(&image)?;
-            println!("image: {} ({} bytes)", image.display(), img.size());
+            outln!("image: {} ({} bytes)", image.display(), img.size());
             let boot = img.bytes_at(0, 512).unwrap_or_default();
             if boot.len() >= 11 && &boot[3..11] == b"NTFS    " {
                 let v = ntfs::probe(&img)?;
-                println!(
+                outln!(
                     "NTFS: cluster {} B, record {} B, $MFT LCN {}",
                     v.cluster_size, v.record_size, v.mft_lcn
                 );
             } else if let Ok(v) = ext4::probe(&img) {
-                println!(
+                outln!(
                     "ext2/3/4: block {} B, {} inodes, {} groups",
                     v.block_size, v.inodes_count, v.groups
                 );
             } else if let Ok(v) = fat::probe(&img) {
-                println!("FAT{}: cluster {} B, {} clusters", v.fat_type, v.cluster_size, v.total_clusters);
+                outln!("FAT{}: cluster {} B, {} clusters", v.fat_type, v.cluster_size, v.total_clusters);
             } else {
-                println!("no supported filesystem signature at offset 0");
+                outln!("no supported filesystem signature at offset 0");
             }
         }
         Cmd::Scan { image, only, min_size, min_conf } => {
@@ -157,7 +165,7 @@ fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
                     skip_zero: false,
                 },
             )?;
-            println!(
+            outln!(
                 "\n{} candidates, {} valid, {} too small, {} too weak",
                 stats.candidates, stats.valid, stats.rejected_small, stats.rejected_weak
             );
@@ -176,7 +184,7 @@ fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
                     skip_zero,
                 },
             )?;
-            println!(
+            outln!(
                 "\n{} candidates, {} valid, {} written ({} bytes) into {}",
                 stats.candidates,
                 stats.valid,
@@ -184,7 +192,7 @@ fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
                 stats.bytes,
                 out.display()
             );
-            println!("manifest: {}", out.join("manifest.csv").display());
+            outln!("manifest: {}", out.join("manifest.csv").display());
         }
         Cmd::Ntfs { image, live, limit } => {
             let img = open(&image)?;
@@ -249,7 +257,7 @@ fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
             let path = out.join(&name);
             let mut f = std::fs::File::create(&path)?;
             f.write_all(&data)?;
-            println!("wrote {} ({} bytes)", path.display(), data.len());
+            outln!("wrote {} ({} bytes)", path.display(), data.len());
         }
     }
     Ok(())
@@ -258,9 +266,9 @@ fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
 fn print_items(items: &[rescueforge::fsmod::Item], limit: Option<usize>) {
     let n = limit.unwrap_or(items.len()).min(items.len());
     for it in &items[..n] {
-        println!("{it}");
+        outln!("{it}");
     }
-    println!("\n{} item(s)", n);
+    outln!("\n{} item(s)", n);
 }
 
 fn sanitize(s: &str) -> String {
