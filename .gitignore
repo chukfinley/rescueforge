@@ -1,0 +1,6 @@
+/target
+_scratch/
+*.img
+*.vhd
+recovered/
+out/

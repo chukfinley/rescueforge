@@ -1,0 +1,19 @@
+format,magic_hex,extensions,evidence
+png,89504e470d0a1a0a,"png;jfi;jfif;jif",rdata descriptor L"Trying Png"
+jpeg,ffd8ff,"jpe;jpeg;jpg",rdata descriptor L"Trying Jpg"
+bmp,424d,"bmp;dib",rdata descriptor L"Trying Bmp"
+tiff-le,49492a00,"tiff;tif",rdata descriptor L"Trying Tiff"
+tiff-be,4d4d002a,"tiff;tif",rdata descriptor L"Trying Tiff"
+zip,504b0304,"zip;docx;xlsx;pptx;odt;ods;odg;odp;epub",rdata descriptor L"Trying Zip"
+rar4,526172211a0700,rar,rdata descriptor L"Trying Rar"
+cab,4d534346,cab,rdata descriptor L"Trying Cab"
+pdf,255044462d,pdf,rdata descriptor L"Trying Pdf"
+rtf,7b5c727466,rtf,rdata descriptor L"Trying Rtf"
+ole2,d0cf11e0a1b11ae1,"doc;xls;ppt;vds",rdata descriptor L"Trying Binary doc"
+asf,3026b2758e66cf11,"asf;wma;wmv",rdata descriptor L"Trying Asf"
+flv,464c56,flv,rdata descriptor L"Trying Flv"
+mpeg-ps,000001ba,"mpg;mpeg;m1v;mpv",rdata descriptor L"Trying MPEG"
+mp4,66747970@4,"mov;qt;mp4;m4a;m4v;3gp",ftyp box at offset 4 (L"Trying Mov")
+itunesdb,6954756e65734442,iTunesDB,rdata descriptor L"Trying ITunesDB"
+iso9660,4344303031@32769,iso,volume descriptor walk (L"Trying ISO9660")
+udf,-,iso,multi-session descriptor sequence (L"Trying UDF")

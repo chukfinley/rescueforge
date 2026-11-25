@@ -1,0 +1,32 @@
+  file_off           va  label                        magic                      exts
+0x00085a08 0x005bda08  Trying UDF                   61 3a 3a 55 64 66 3a 3a    
+0x00088e98 0x005c0e98  Trying to lock disk:         69 73 6b 3a                 ,Oper,atio,n ca,ncel,ed.
+0x00089b60 0x005c1b60  Trying MPEGAudio                                        mpg
+0x0008a990 0x005c2990  Trying to parse volume d     76 6f 6c 75                me d,escr,ipto,r se,quen,ce a
+0x0008e940 0x005c6940  Trying location block: %     62 6c 6f 63                k: %,u, p,arti,tion,: %u
+0x0008ee30 0x005c6e30  Trying ISO9660               4c 69 62 52 65 63 75 76    
+0x00092e20 0x005cae20  Trying Tiff                                             tif
+0x000930d0 0x005cb0d0  Trying Zip                   6f 64 74                   odg,odp,ods,pptx,xlsx
+0x000931b8 0x005cb1b8  Trying Riff                                             .wav,midi,avi,bmp
+0x00093238 0x005cb238  Trying Bmp                   6a 70 65                   jpeg,jpg,.jpg
+0x000932a0 0x005cb2a0  Trying Jpg                   64 69 62                   png,.png
+0x000932f8 0x005cb2f8  Trying Png                                              jfi,jfif,jif,gif,.gif
+0x00093370 0x005cb370  Trying Gif                   53 74 67 4f 70 65 6e 50    mary,Info,rmat,ion
+0x000933e8 0x005cb3e8  Trying Binary doc            63                         Visi,oDoc,umen,t,.ppt
+0x00093538 0x005cb538  Trying MPEG                  54 72 79 69                ng A,sf,asf
+0x00093558 0x005cb558  Trying Asf                   43 41 73 66 44 61 74 61    flv,.flv
+0x000935d0 0x005cb5d0  Trying Flv                   6f 67 67                   .Ogg,Tryi
+0x00093620 0x005cb620  Trying Ogg                   6f 67 78                   oga,ogv,qt,mov
+0x00093680 0x005cb680  Trying Mov                   72 61 72                   .rar,Tryi
+0x000936d0 0x005cb6d0  Trying Rar                   2e 63 61 62                Tryi,ng C
+0x00093718 0x005cb718  Trying Cab                   4d 53 43 46                rtf,Tryi,ng R
+0x00093760 0x005cb760  Trying Rtf                   43 55 72 6c 44 61 74 61    Tryi,ng U,rl
+0x00093798 0x005cb798  Trying Url                   5b 64 5b 44                url
+0x00093800 0x005cb800  Trying Pdf                   70 64 66                   Tryi,ng I,Tune
+0x00093840 0x005cb840  Trying ITunesDB              69 54 75 6e                esDB
+0x00093898 0x005cb898  Trying Crw                   43 43 72 77 44 61 74 61    
+0x00093fb0 0x005cbfb0  Trying Rtf eof               2e 70 64 66                e,Tryi
+0x00094000 0x005cc000  Trying Pdf eof               2e 63 72 77                e,Tryi
+0x00094050 0x005cc050  Trying CrwEnd                57 69 6e 64                ows ,Mail, ema,ils.,zip
+
+29 descriptors
