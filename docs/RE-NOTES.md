@@ -151,6 +151,54 @@ confirmation that validators are per-class, vtable-dispatched, and independent o
 the scan engine -- which is exactly the decomposition used in `src/validators.rs`
 (one function per format, called through a `match` on `Kind`).
 
+
+### Getting past the wrappers: MSVC RTTI -> vtable
+
+Ghidra's RTTI analyzer did not recover the classes (only the log strings showed
+up as labels), so the vtable was resolved directly from the on-disk RTTI chain
+with `re/tools/msvc_rtti.py`:
+
+```
+type descriptor -> CompleteObjectLocator (signature 1, pTypeDescriptor RVA)
+                -> qword in .rdata/.data equal to the COL address
+                -> that qword + 8 is slot 0
+```
+
+x64 MSVC stores those pointers as image-base-relative values, so this works on
+the file without running it.
+
+```
+CPngFileData   vtable 0x1405a2d30
+  slot 1  0x140281a90   memcmp(header, <descriptor magic>, 8)
+CPdfData       vtable 0x1405a2ad8
+  slot 1  0x14028bff0   memcmp(header, "%PDF-", 4)
+CZipFileData   vtable 0x1405a3598
+  slot 1  0x14027e620
+```
+
+Decompiled slot 1 of `CPngFileData` (`re/data/png_validator.c`):
+
+```c
+void FUN_140281a90(undefined8 self, undefined8 buf)
+{
+  (*(code *)PTR__guard_dispatch_icall_1405394d0)(buf, &DAT_1405cb310, 8);
+  return;
+}
+```
+
+`DAT_1405cb310` is `89 50 4e 47 0d 0a 1a 0a`. The slot's whole job is: compare
+N bytes of the candidate against the magic that lives in the descriptor. The
+equivalent PDF slot compares 4 bytes against `25 50 44 46 2d` (`%PDF-`).
+
+Two consequences worth recording:
+
+* the architecture is exactly header-match -> vtable-dispatched `Validate`, which
+  is what `src/sig.rs` (pattern + `pattern_at`) and `src/validators.rs` (per-kind
+  function) reproduce;
+* reading the vtable naively beyond its last slot walks into the *next* class:
+  `CPngFileData`'s neighbour is `CGifFileData` (`DAT_1405cb388` = `GIF8`,
+  `DAT_1405cb340` = `L"gif"`). That is how the first pass mislabelled slots 6/7.
+
 ## What this project does differently
 
 * Validators return a length **and** a confidence, and every rejection is written
