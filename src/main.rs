@@ -117,7 +117,7 @@ fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
     let open = |p: &PathBuf| Image::open_at(p, base);
     match cli.cmd {
         Cmd::Sigs => {
-            println!("{:<12} {:<6} {}", "name", "ext", "limit");
+            println!("{:<12} {:<6} limit", "name", "ext");
             for s in sig::SIGNATURES {
                 println!("{:<12} .{:<5} {} MiB", s.name, s.ext, s.max_len / (1 << 20));
             }

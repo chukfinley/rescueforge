@@ -23,7 +23,7 @@ pub struct Volume {
 
 pub fn probe(img: &Image) -> io::Result<Volume> {
     let bs = img.bytes_at(0, 512)?;
-    if &bs[510..512] != [0x55, 0xAA] {
+    if bs[510..512] != [0x55, 0xAA] {
         return Err(io::Error::new(io::ErrorKind::InvalidData, "no FAT boot signature"));
     }
     let bps = le16(&bs[0x0B..]) as u64;
@@ -46,7 +46,7 @@ pub fn probe(img: &Image) -> io::Result<Volume> {
         return Err(io::Error::new(io::ErrorKind::InvalidData, "bad FAT table size"));
     }
 
-    let root_dir_sectors = ((root_entries * 32) + (bps - 1)) / bps;
+    let root_dir_sectors = (root_entries * 32).div_ceil(bps);
     let fat_offset = reserved * bps;
     let data_offset = (reserved + num_fats * fat_size + root_dir_sectors) * bps;
     let root_offset = (reserved + num_fats * fat_size) * bps;
@@ -201,6 +201,7 @@ fn parse_dir(buf: &[u8]) -> Vec<Entry> {
         if deleted && !name.starts_with('_') && lfn.is_empty() {
             name.insert(0, '_');
         }
+
         out.push(Entry { name, attr, cluster, size, deleted });
         i += 32;
     }
@@ -208,14 +209,29 @@ fn parse_dir(buf: &[u8]) -> Vec<Entry> {
 }
 
 fn short_name(e: &[u8]) -> String {
-    let base: Vec<u8> = e[0..8].iter().cloned().filter(|&b| b != b' ').collect();
-    let ext: Vec<u8> = e[8..11].iter().cloned().filter(|&b| b != b' ').collect();
-    let b = String::from_utf8_lossy(&base).to_string();
-    let x = String::from_utf8_lossy(&ext).to_string();
-    if x.is_empty() {
-        b
+    // The first byte of a deleted entry is 0xE5, which is also the 8-bit form
+    // of the Japanese katakana "ta" (0x30BF) - never render it as a character.
+    let clean = |slice: &[u8]| -> String {
+        slice
+            .iter()
+            .filter(|&&b| b != b' ')
+            .map(|&b| {
+                if b == 0xE5 {
+                    '_'
+                } else if b.is_ascii_graphic() {
+                    b as char
+                } else {
+                    '_'
+                }
+            })
+            .collect()
+    };
+    let base = clean(&e[0..8]);
+    let ext = clean(&e[8..11]);
+    if ext.is_empty() {
+        base
     } else {
-        format!("{b}.{x}")
+        format!("{base}.{ext}")
     }
 }
 
@@ -227,6 +243,7 @@ pub fn items(img: &Image, vol: &Volume, include_live: bool) -> io::Result<Vec<It
     Ok(out)
 }
 
+#[allow(clippy::too_many_arguments)]
 fn list_dir(
     img: &Image,
     vol: &Volume,
@@ -244,14 +261,13 @@ fn list_dir(
     let entries = parse_dir(&buf);
     let mut id = parent + 1;
     for e in entries {
-        if e.attr & 0x10 != 0 && e.name != "." && e.name != ".." {
-            if include_live && depth < 6 && e.cluster >= 2 {
+        if e.attr & 0x10 != 0 && e.name != "." && e.name != ".."
+            && include_live && depth < 6 && e.cluster >= 2 {
                 let ext = vol.chain(e.cluster, 64);
                 if let Some((off, _)) = ext.first() {
                     let _ = list_dir(img, vol, *off, vol.cluster_size, id, include_live, out, depth + 1);
                 }
             }
-        }
         if e.attr & 0x10 != 0 {
             continue;
         }

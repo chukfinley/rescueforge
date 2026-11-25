@@ -191,7 +191,7 @@ fn png(img: &Image, start: u64, budget: u64) -> Option<Found> {
             remaining -= n as u64;
         }
         let stored = be32(&read(img, pos + 8 + len, 4)?);
-        if !crc == stored {
+        if (!crc) == stored {
             crc_ok += 1;
         } else {
             crc_bad += 1;
@@ -431,7 +431,7 @@ fn pdf(img: &Image, start: u64, budget: u64) -> Option<Found> {
             total += 1;
         }
     }
-    let has_obj = find_bytes(img, start, std::cmp::min(start + 1 << 20, limit), b" obj").is_some();
+    let has_obj = find_bytes(img, start, std::cmp::min((start + 1) << 20, limit), b" obj").is_some();
     Some(Found::new(total, if has_obj { 0.9 } else { 0.55 }, "%%EOF terminator"))
 }
 
@@ -826,7 +826,7 @@ fn ole2(img: &Image, start: u64, budget: u64) -> Option<Found> {
             }
         }
         guard += 1;
-        let next_off = start + 512 + (guard as u64 - 1) * 4;
+        let next_off = start + 512 + (guard - 1) * 4;
         let Some(nb) = read(img, next_off, 4) else { break };
         fat_sector = le32(&nb) + 1;
     }
@@ -950,8 +950,8 @@ fn pst(img: &Image, start: u64, budget: u64) -> Option<Found> {
 
 fn pcap(img: &Image, start: u64, budget: u64) -> Option<Found> {
     let h = read(img, start, 24)?;
-    let le = &h[0..4] == [0xD4, 0xC3, 0xB2, 0xA1];
-    if !le && &h[0..4] != [0xA1, 0xB2, 0xC3, 0xD4] {
+    let le = h[0..4] == [0xD4, 0xC3, 0xB2, 0xA1];
+    if !le && h[0..4] != [0xA1, 0xB2, 0xC3, 0xD4] {
         return None;
     }
     let limit = start + budget;

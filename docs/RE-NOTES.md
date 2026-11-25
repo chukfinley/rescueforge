@@ -121,6 +121,36 @@ Signatures]` UI section. Useful strings for behaviour parity:
 Delphi binaries decompile poorly (no RTTI in the Ghidra sense, virtual method
 tables resolved at runtime), so the yield here is behaviour, not code.
 
+
+## Ghidra pass: what string xrefs actually reach
+
+Recuva 1.53 x64 was imported into Ghidra 12.2 with the full auto-analyser, then a
+script (`XrefDecomp.java`) decompiled every function that references a string
+containing `::Validate`. 25 validator class tags produced 75 functions; the
+mapping is in `re/data/recuva_validator_map.txt` and the full decompilation dump
+in `re/data/recuva_validate.c` (717 KB of C).
+
+Result, and the limit of this technique:
+
+* Each `C<Format>Data::Validate` string sits inside a **trace wrapper**: the
+  function calls `MultiByteToWideChar(0, 0, "CPngFileData::Validate", ...)` to
+  format a log line, then dispatches through
+  `PTR__guard_dispatch_icall_1405394d0` (Control Flow Guard). The real validation
+  body is reached by an indirect vtable call, so there is no direct xref from the
+  string to the algorithm.
+* Consequence: get the format *catalogue* from `.rdata`, but to get the algorithm
+  you must rebuild the class hierarchy (RTTI -> vtable -> method slots). That is
+  a separate, much larger job and it is not needed here: the algorithms are
+  described in public specifications, and the descriptor table already tells us
+  which formats exist and which magic they use.
+* 75 CFG-guarded indirect calls also explain why naive patching of commercial
+  carvers is common malware territory; this project does not do that.
+
+The practical yield of the Ghidra pass was therefore structural, not textual:
+confirmation that validators are per-class, vtable-dispatched, and independent of
+the scan engine -- which is exactly the decomposition used in `src/validators.rs`
+(one function per format, called through a `match` on `Kind`).
+
 ## What this project does differently
 
 * Validators return a length **and** a confidence, and every rejection is written

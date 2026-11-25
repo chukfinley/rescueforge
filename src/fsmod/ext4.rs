@@ -37,7 +37,7 @@ pub fn probe(img: &Image) -> io::Result<Volume> {
     let incompat = le32(&sb[0x60..0x64]);
     let desc_size = if incompat & 0x80 != 0 { le16(&sb[0xFE..0x100]) as u64 } else { 32 };
 
-    if block_size < 1024 || block_size > 65536 || inodes_per_group == 0 {
+    if !(1024..=65536).contains(&block_size) || inodes_per_group == 0 {
         return Err(io::Error::new(io::ErrorKind::InvalidData, "bad ext geometry"));
     }
     let groups = ((blocks_count.saturating_sub(first_data_block)) + blocks_per_group - 1)
@@ -112,8 +112,8 @@ pub fn read_inode(img: &Image, vol: &Volume, number: u64) -> io::Result<Inode> {
     let i_block = &b[0x28..0x28 + 60];
     let mut extents = Vec::new();
     let mut direct_block = None;
-    if flags & 0x0008_0000 != 0 {
-        // inline data lives in i_block; nothing to map
+    if flags & 0x1000_0000 != 0 {
+        // EXT4_INLINE_DATA_FL: the file content lives inside the inode
     } else if le16(&i_block[0..2]) == 0xF30A {
         parse_extent_node(img, vol, i_block, &mut extents, 0)?;
     } else {

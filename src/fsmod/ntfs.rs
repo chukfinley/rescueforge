@@ -184,8 +184,8 @@ pub fn read_record(img: &Image, job: &Volume, offset: u64, number: u64) -> io::R
                     rec.mtime = Some(filetime(le64(&parsed.value[8..16])));
                 }
             }
-            0x30 => {
-                if parsed.value.len() >= 0x42 {
+            0x30
+                if parsed.value.len() >= 0x42 => {
                     let v = &parsed.value;
                     let parent = le64(&v[0..8]) & 0x0000_FFFF_FFFF_FFFF;
                     let ns = v[0x41];
@@ -206,7 +206,6 @@ pub fn read_record(img: &Image, job: &Volume, offset: u64, number: u64) -> io::R
                         rec.parent = parent;
                     }
                 }
-            }
             _ => {}
         }
         rec.attrs.push(parsed);
@@ -295,10 +294,7 @@ pub fn for_each_record<F: FnMut(Record)>(img: &Image, job: &Volume, mut visit: F
         let mut pos = off;
         let end = off + len;
         while pos + job.record_size <= end {
-            match read_record(img, job, pos, number) {
-                Ok(rec) => visit(rec),
-                Err(_) => {}
-            }
+            if let Ok(rec) = read_record(img, job, pos, number) { visit(rec) }
             pos += job.record_size;
             number += 1;
         }

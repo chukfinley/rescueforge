@@ -27,12 +27,6 @@ impl Manifest {
         Ok(Self { out, enabled: true })
     }
 
-    pub fn disabled() -> io::Result<Self> {
-        // /dev/null equivalent: create nothing, keep the API uniform
-        let out = BufWriter::new(File::create(std::env::temp_dir().join("rescueforge-empty.csv"))?);
-        Ok(Self { out, enabled: false })
-    }
-
     pub fn write(&mut self, e: &Entry) -> io::Result<()> {
         if !self.enabled {
             return Ok(());

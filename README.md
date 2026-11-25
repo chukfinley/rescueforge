@@ -79,6 +79,10 @@ Adding a format is one entry in [`src/sig.rs`](src/sig.rs) plus one function in
 * NTFS undelete: 256 MB VHD formatted by Windows 10, 21 files deleted, all
   recovered with original names, sizes and content
 * PNG carving against a generated 64x64 image and an embedded PDF/ZIP: exact
+* FAT32 image with `mtools`, 6 files deleted: all 6 found with correct sizes
+* ext4 image via `debugfs`, two files written and removed: both inodes found and
+  their content recovered
+* scan throughput: 256 MB image in 0.6 s (~425 MB/s, warm page cache)
 
 ## Status
 
